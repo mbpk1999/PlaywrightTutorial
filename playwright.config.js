@@ -11,8 +11,14 @@ const config = ({
   expect: {
     timeout: 5000
   },
+  reporter: 'html',
   use: {
     browserName: 'chromium',
+    headless: false,
+    viewport: null,
+    launchOptions: {
+      args: ['--start-maximized']
+    }
   }
 });
 
