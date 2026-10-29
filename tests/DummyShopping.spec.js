@@ -1,6 +1,6 @@
 const {test, expect} = require('@playwright/test');
 
-test.only('RegisterUser', async ({browser}) => {
+test('RegisterUser', async ({browser}) => {
     const context = await browser.newContext();
     const page  = await context.newPage();
 
@@ -80,4 +80,52 @@ test('ExistingUserError', async ({browser}) => {
 
     await expect(AlertMsg).toBeVisible();
     console.log('Alert Message:', await AlertMsg.textContent());
+});
+
+test('LoginTest', async ({page}) => {
+
+     const Email = page.locator('#userEmail');
+     const Password = page.locator('#userPassword');
+     const LoginButton = page.locator('#login');
+
+    await page.goto('https://rahulshettyacademy.com/client');
+    await Email.fill('gojo.satoru@example.com');
+    await Password.fill('Password123');
+    await LoginButton.click();
+    await expect(page).toHaveURL('https://rahulshettyacademy.com/client/#/dashboard/dash');
+
+});
+
+test.only('DynamicElementWait', async ({page}) => {
+
+     const Email = page.locator('#userEmail');
+     const Password = page.locator('#userPassword');
+     const LoginButton = page.locator('#login');
+     const CardTitles = page.locator('.card-body b');
+
+    await page.goto('https://rahulshettyacademy.com/client');
+    await Email.fill('gojo.satoru@example.com');
+    await Password.fill('Password123');
+    await LoginButton.click();
+    await expect(page).toHaveURL('https://rahulshettyacademy.com/client/#/dashboard/dash');
+    await CardTitles.first().waitFor();
+    console.log('All Card Titles:' , await CardTitles.allTextContents());
+
+});
+
+test('DynamicAPIWait', async ({page}) => {
+
+     const Email = page.locator('#userEmail');
+     const Password = page.locator('#userPassword');
+     const LoginButton = page.locator('#login');
+     const CardTitles = page.locator('.card-body b');
+
+    await page.goto('https://rahulshettyacademy.com/client');
+    await Email.fill('gojo.satoru@example.com');
+    await Password.fill('Password123');
+    await LoginButton.click();
+    await expect(page).toHaveURL('https://rahulshettyacademy.com/client/#/dashboard/dash');
+    await page.waitForLoadState('networkidle');
+    console.log('All Card Titles:' , await CardTitles.allTextContents());
+
 });
