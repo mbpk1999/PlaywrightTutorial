@@ -96,7 +96,7 @@ test('LoginTest', async ({page}) => {
 
 });
 
-test.only('DynamicElementWait', async ({page}) => {
+test('DynamicElementWait', async ({page}) => {
 
      const Email = page.locator('#userEmail');
      const Password = page.locator('#userPassword');
