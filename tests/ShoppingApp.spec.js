@@ -51,6 +51,9 @@ test.only('ShoppingE2E', async ({page}) => {
     await page.locator('div.field').filter({hasText: 'Apply Coupon '}).locator('p').waitFor();
     console.log('Coupon Status:', await page.locator('div.field').filter({hasText: 'Apply Coupon '}).locator('p').textContent());
     await expect(page.locator('div.field').filter({hasText: 'Apply Coupon '}).locator('p')).toHaveText('* Coupon Applied');
+
+        //Address Information
+    await expect(page.locator(".details__user label")).toHaveText('gojo.satoru@example.com');
     await page.locator("[placeholder*='Country']").pressSequentially("Ind");
     await page.locator('section .ta-item').first().waitFor();
     const CountryList = await page.locator('section .ta-item').all();
@@ -64,6 +67,33 @@ test.only('ShoppingE2E', async ({page}) => {
         }
     }
     await page.locator('text=Place Order').click();
+
+    // Verify order confirmation
+    const OrderMsg = await page.locator('h1').textContent();
+    expect(OrderMsg.trim()).toEqual('Thankyou for the order.');
+    const RawOrderId = await page.locator('.em-spacer-1 .ng-star-inserted').textContent();
+    const OrderId = RawOrderId.split('|')[1].trim();
+    console.log('Order ID:', OrderId);
+
+    // Go to Orders page and verify the order is listed
+    await page.locator('text= Orders History Page ').click();
+    await page.locator('table.ng-star-inserted tr').first().waitFor();
+    const OrderList = await page.locator('table.ng-star-inserted tbody tr').all();
+    for(const orderRow of OrderList)
+    {
+        const orderIdText = await orderRow.locator('th').textContent();
+        if(orderIdText.trim() === OrderId)
+        {
+            console.log('Order found in history.');
+            await orderRow.locator('button:has-text("View")').click();
+            break;
+        }
+    }
+
+    // Validate Order Summary
+    const OrderSummaryId = await page.locator('.col-md-6 .-main').textContent();
+    console.log('Order Summary ID:', OrderSummaryId);
+    expect(OrderSummaryId.trim()).toEqual(OrderId);
     await page.pause();
 
 });
@@ -101,6 +131,8 @@ test('ShoppingE2E_Alt', async ({page}) => {
             }
         }
     }
+
+    //
     await page.pause();
 
 });
