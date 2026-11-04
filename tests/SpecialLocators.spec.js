@@ -17,7 +17,34 @@ test('Playwright Special Locators', async ({page}) =>
     await page.locator('app-card-list app-card').filter({hasText: 'Blackberry'}).getByRole('button', {name: 'Add'}).click();
 })
 
-test.only('Assertion Timeouts', async ({page}) => 
+
+test.only('CodegenTest', async ({ page }) => {
+  await page.goto('https://rahulshettyacademy.com/angularpractice/');
+  await page.locator('form input[name="name"]').click();
+  await page.locator('form input[name="name"]').fill('Gojo');
+  await page.locator('input[name="email"]').click();
+  await page.locator('input[name="email"]').fill('gojo.sataru@example.com');
+  await page.getByRole('textbox', { name: 'Password' }).click();
+  await page.getByRole('textbox', { name: 'Password' }).fill('Password123');
+  await page.getByRole('checkbox', { name: 'Check me out if you Love' }).check();
+  await page.getByRole('radio', { name: 'Student' }).check();
+  await page.locator('input[name="bday"]').fill('2020-01-01');
+  await page.getByRole('button', { name: 'Submit' }).click();
+  await expect(page.getByText('× Success! The Form has been')).toBeVisible();
+  await page.getByRole('link', { name: 'Shop' }).click();
+  await page.locator('app-card').filter({ hasText: 'Blackberry $24.99 Lorem ipsum' }).getByRole('button').click();
+  await page.getByText('Checkout ( 1 ) (current)').click();
+  await page.getByRole('button', { name: 'Checkout' }).click();
+  await page.getByRole('textbox', { name: 'Please choose your delivery' }).click();
+  await page.getByRole('textbox', { name: 'Please choose your delivery' }).pressSequentially('India');
+  await page.getByText('India').click({timeout: 15000});
+  await page.getByText('I agree with the term &').click();
+  await page.getByRole('checkbox', { name: 'I agree with the term &' }).check();
+  await page.getByRole('button', { name: 'Purchase' }).click();
+  await expect(page.getByText('× Success! Thank you! Your')).toBeVisible();
+});
+
+test('Assertion Timeouts', async ({page}) => 
 {
     test.setTimeout(20000);
     const slowexpect = expect.configure({timeout: 12000});
