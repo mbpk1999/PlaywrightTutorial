@@ -13,6 +13,8 @@ const config = ({
   },
   reporter: 'html',
   use: {
+    actionTimeout: 5000,
+    navigationTimeout: 5000,
     browserName: 'chromium',
     headless: false,
     viewport: null,
