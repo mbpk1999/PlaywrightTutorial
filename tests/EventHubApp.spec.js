@@ -79,7 +79,7 @@ test.only('Login and Create Event and Book an Event', async ({ page }) => {
     const phno = '1234567890';
     await loginUser(page, URL, email, password);
     await createEvent(page, eventName, eventDescription, category, city, venue, eventDate, price, seats);
-    await page.locator('article div a h3').filter({ hasText: 'Playwright Test Event' }).click();
+    await page.locator('article div a h3').filter({ hasText: eventName}).click();
     const ticketDisplay = page.locator('#ticket-count');
     const addTicketButton = page.getByRole('button', {name: '+' });
     let currentCount = Number(await ticketDisplay.innerText());
@@ -97,7 +97,17 @@ test.only('Login and Create Event and Book an Event', async ({ page }) => {
     await page.getByRole('button', {name : 'Confirm Booking'}).click();
     await expect(page.locator('div h3.text-xl')).toContainText('Booking Confirmed!');
     await page.getByRole('button', { name: 'View My Bookings' }).click();
-    await expect(page.locator('#booking-card').filter({ hasText: 'Playwright Test Event' }).locator('span.bg-emerald-100')).toHaveText('confirmed');
+    await expect(page.locator('#booking-card').filter({ hasText: eventName }).locator('span.bg-emerald-100')).toHaveText('confirmed');
+    await page.locator('a span').click();
+    await page.locator('article div a h3').filter({ hasText: eventName }).click();
+    await page.locator('div p').first().waitFor();
+    await page.reload();
+    await page.waitForTimeout(5000);
+    await page.reload();
+    const availableSeats = await page.locator('div p').filter({hasText: /seats$/}).textContent();
+    const availableSeatsCount = Number(availableSeats.trim().split(" ")[0]);
+    console.log(availableSeats+ "Available Seats: "+availableSeatsCount);
+    expect(availableSeatsCount).toBe(Number(seats) - ticketCount);
 
 });
 
@@ -127,5 +137,5 @@ async function createEvent(page, eventName, eventDescription, category, city, ve
     await expect(page.locator("div.overflow-hidden p")).toBeVisible();
     await expect(page.locator("div.overflow-hidden p")).toHaveText('Event created!');
     await page.locator('a span').click();
-    await expect(page.locator('article div a h3').filter({ hasText: 'Playwright Test Event' })).toBeVisible();
+    await expect(page.locator('article div a h3').filter({ hasText: eventName })).toBeVisible();
 }
