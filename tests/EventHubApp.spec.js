@@ -1,4 +1,20 @@
 import {test, expect} from '@playwright/test';
+        
+    const username = 'Gojo Sataru';
+    const URL = 'https://eventhub.rahulshettyacademy.com/login';
+    const email = 'gojo.sataru@example.com';
+    const password = 'Password@123';
+    const eventName = 'Playwright Test Event1';
+    const eventDescription = 'This is a test event created using Playwright.';
+    const category = 'Workshop';
+    const city = 'Test City';
+    const venue = 'Test Venue';
+    const eventDate = '2026-11-25T15:44';
+    const price = '50';
+    const seats = '100';
+    var ticketCount = 4;
+    const phno = '1234567890';
+    var bookingID = "";
 
 test('Register User', async ({ browser }) => {
     const context = await browser.newContext();
@@ -58,57 +74,22 @@ test('Create Event', async ({ page }) => {
     await expect(page.locator("div.overflow-hidden p")).toBeVisible();
     await expect(page.locator("div.overflow-hidden p")).toHaveText('Event created!');
     await page.locator('a span').click();
-    await expect(page.locator('article div a h3').filter({ hasText: 'Playwright Test Event' })).toBeVisible();
+    await expect(page.locator('article div a h3').filter({ hasText: 'Playwright Test Event' }).first()).toBeVisible();
 
 })
 
 test.only('Login and Create Event and Book an Event', async ({ page }) => {
-    const username = 'Gojo Sataru';
-    const URL = 'https://eventhub.rahulshettyacademy.com/login';
-    const email = 'gojo.sataru@example.com';
-    const password = 'Password@123';
-    const eventName = 'Playwright Test Event1';
-    const eventDescription = 'This is a test event created using Playwright.';
-    const category = 'Workshop';
-    const city = 'Test City';
-    const venue = 'Test Venue';
-    const eventDate = '2026-11-25T15:44';
-    const price = '50';
-    const seats = '100';
-    const ticketCount = 4;
-    const phno = '1234567890';
     await loginUser(page, URL, email, password);
     await createEvent(page, eventName, eventDescription, category, city, venue, eventDate, price, seats);
-    await page.locator('article div a h3').filter({ hasText: eventName}).click();
-    const ticketDisplay = page.locator('#ticket-count');
-    const addTicketButton = page.getByRole('button', {name: '+' });
-    let currentCount = Number(await ticketDisplay.innerText());
-    while(currentCount < ticketCount)
-    {
-        await addTicketButton.click();
-        currentCount +=1;
-        await expect(ticketDisplay).toHaveText(String(currentCount));
-    }
-    await expect(ticketDisplay).toHaveText(String(ticketCount));
+    await bookEvent(page, eventName, username, email, phno, ticketCount, bookingID);
 
-    await page.locator('#customerName').fill(username);
-    await page.locator('#customer-email').fill(email);
-    await page.locator('#phone').fill(phno);
-    await page.getByRole('button', {name : 'Confirm Booking'}).click();
-    await expect(page.locator('div h3.text-xl')).toContainText('Booking Confirmed!');
-    await page.getByRole('button', { name: 'View My Bookings' }).click();
-    await expect(page.locator('#booking-card').filter({ hasText: eventName }).locator('span.bg-emerald-100')).toHaveText('confirmed');
-    await page.locator('a span').click();
-    await page.locator('article div a h3').filter({ hasText: eventName }).click();
-    await page.locator('div p').first().waitFor();
-    await page.reload();
-    await page.waitForTimeout(5000);
-    await page.reload();
-    const availableSeats = await page.locator('div p').filter({hasText: /seats$/}).textContent();
-    const availableSeatsCount = Number(availableSeats.trim().split(" ")[0]);
-    console.log(availableSeats+ "Available Seats: "+availableSeatsCount);
-    expect(availableSeatsCount).toBe(Number(seats) - ticketCount);
+});
 
+test.only('Login, Book Event, Cancel Booking', async ({ page }) => {
+    await loginUser(page, URL, email, password);
+    ticketCount = 1;
+    bookingID = await bookEvent(page, eventName, username, email, phno, ticketCount)
+    await cancelBooking(page, eventName, bookingID);
 });
 
 
@@ -137,5 +118,78 @@ async function createEvent(page, eventName, eventDescription, category, city, ve
     await expect(page.locator("div.overflow-hidden p")).toBeVisible();
     await expect(page.locator("div.overflow-hidden p")).toHaveText('Event created!');
     await page.locator('a span').click();
-    await expect(page.locator('article div a h3').filter({ hasText: eventName })).toBeVisible();
+    await expect(page.locator('article div a h3').filter({ hasText: eventName }).first()).toBeVisible();
+    await page.locator('nav a svg').click();
 }
+
+async function bookEvent(page, eventName, username, email, phno, ticketCount, bookingID)
+{
+    await page.getByRole('button', { name: 'Explore All Events' }).click();
+    await page.locator('article div a h3').filter({ hasText: eventName}).first().click();
+
+    const ticketDisplay = page.locator('#ticket-count');
+    const addTicketButton = page.getByRole('button', {name: '+' });
+    let currentCount = Number(await ticketDisplay.innerText());
+    while(currentCount < ticketCount)
+    {
+        await addTicketButton.click();
+        currentCount +=1;
+        await expect(ticketDisplay).toHaveText(String(currentCount));
+    }
+    await expect(ticketDisplay).toHaveText(String(ticketCount));
+    var availableSeats = await page.locator('div p').filter({hasText: /seats$/}).textContent();
+    const InitialavailableSeatsCount = Number(availableSeats.trim().split(" ")[0]);
+    await page.locator('#customerName').fill(username);
+    await page.locator('#customer-email').fill(email);
+    await page.locator('#phone').fill(phno);
+    await page.getByRole('button', {name : 'Confirm Booking'}).click();
+    await expect(page.locator('div h3.text-xl')).toContainText('Booking Confirmed!');
+    bookingID = await page.locator('.booking-ref').innerText();
+    console.log("Booking ID: "+bookingID);
+    await page.getByRole('button', { name: 'View My Bookings' }).click();
+    await expect(page.locator('#booking-card').filter({ hasText: bookingID }).locator('span.bg-emerald-100')).toHaveText('confirmed');
+    await page.locator('a span').click();
+    await page.locator('article div a h3').filter({ hasText: eventName }).first().click();
+    await page.locator('div p').first().waitFor();
+    await page.reload();
+    await page.waitForTimeout(5000);
+    await page.reload();
+    availableSeats = await page.locator('div p').filter({hasText: /seats$/}).textContent();
+    const availableSeatsCount = Number(availableSeats.trim().split(" ")[0]);
+    console.log(availableSeats+ "Available Seats: "+availableSeatsCount);
+    expect(availableSeatsCount).toBe(InitialavailableSeatsCount - ticketCount);
+    await page.locator('nav a svg').click();
+    return bookingID;
+}
+
+async function cancelBooking(page, eventName, bookingID)
+{
+    await page.getByRole('button', { name: 'My Bookings' }).click();
+    if(bookingID.trim() !== '')
+    {
+        const mybooking = await page.locator('#booking-card').filter({ hasText: bookingID });
+        await mybooking.getByRole('button', {name : 'View Details'}).click();
+    }
+    else
+    {
+        const mybooking = await page.locator('#booking-card').filter({ hasText: eventName }).first();
+        await mybooking.getByRole('button', {name : 'View Details'}).click();
+    }
+
+    const paymentSummaryConatiner = await page.locator('.space-y-3').filter({hasText : 'Total Paid'});
+    const tickets = parseInt(await paymentSummaryConatiner.locator('span').nth(1).innerText());
+    await page.locator('#check-refund-btn').click();
+    await page.locator('#refund-result').waitFor({state: 'visible', timeout: 10000 });
+    if(tickets==1)
+    {
+        await expect(page.locator('#refund-result')).toContainText('Eligible for refund. Single-ticket bookings qualify for a full refund.');
+    }
+    else
+    {
+        await expect(page.locator('#refund-result')).toContainText('Not eligible for refund');
+    }
+    await page.getByRole('button', {name : 'Cancel Booking'}).click();
+    await page.getByRole('button', {name : 'Yes, cancel it'}).click();
+    await expect(page.locator('.overflow-hidden')).toContainText('Booking cancelled successfully');
+    await page.locator('nav a svg').click();
+ }
